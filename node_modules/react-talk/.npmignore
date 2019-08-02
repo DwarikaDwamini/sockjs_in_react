@@ -1,8 +1,0 @@
-src
-style
-test
-examples
-npm-debug.log
-webpack*.js
-.babelrc
-.eslintrc
