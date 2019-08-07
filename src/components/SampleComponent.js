@@ -1,20 +1,11 @@
 import React from "react";
-import ReactDom from "react-dom";
 import SockJsClient from "react-stomp";
-import UsernameGenerator from "username-generator";
-import Fetch from "json-fetch";
-import {TalkBox} from "react-talk";
-import {Button} from "@material-ui/core";
-import Icon from '@material-ui/core/Icon';
 import PropTypes from 'prop-types';
-import classNames from 'classnames';
 import { withStyles } from '@material-ui/core/styles';
-import Paper from '@material-ui/core/Paper';
 import moment from 'moment';
 import "../chatContainer.css";
-
-
-const randomstring = require("randomstring");
+import chatIcon from '../images/chatbot.svg';
+import personIcon from '../images/person.svg'
 
 
 const styles = theme => ({
@@ -41,14 +32,8 @@ const styles = theme => ({
 class SampleComponent extends React.Component {
     constructor(props) {
         super(props);
-        // randomUserId is used to emulate a unique user id for this demo usage
-        this.randomUserName = UsernameGenerator.generateUsername("-");
-        this.randomUserId = randomstring.generate();
-
         this.sendUser = this.sendUser.bind(this);
         this.sendMessage = this.sendMessage.bind(this);
-
-
         this.state = {
             clientConnected: false,
             messages: [],
@@ -67,16 +52,6 @@ class SampleComponent extends React.Component {
 
     onConnect(){
         this.setState({clientConnected: true});
-
-        /*var url = stompClient.ws._transport.url;
-        url = url.replace(
-            "ws://localhost:8080/spring-security-mvc-socket/secured/room/",  "");
-        url = url.replace("/websocket", "");
-        url = url.replace(/^[0-9]+\//, "");
-        console.log("Your current session is: " + url);
-        sessionId = url;*/
-
-
     }
 
     sendUser(e){
@@ -88,16 +63,8 @@ class SampleComponent extends React.Component {
         this.setState(prevState => ({
             userList: [...prevState.userList, username]
         }));
-        //this.clientRef.sendMessage("/app/register", JSON.stringify({user: username, type: 'JOIN'}));
-        //this.clientRef.sendMessage("/secured/chat", JSON.stringify({sender: username, type: 'JOIN'}));
-       // this.userName.value = "";
-       // this.clientRef.sendMessage("/user/"+ username +"/queue/position-updates", JSON.stringify({user: username, type: 'JOIN'}));
-
         this.clientRef.sendMessage("/app/user", JSON.stringify({username: username}));
-
-        this.clientRef._subscribe("/topic/"+username)
-
-
+        this.clientRef._subscribe("/topic/"+username);
     }
 
     sendMessage(e){
@@ -111,24 +78,20 @@ class SampleComponent extends React.Component {
     }
 
     onMessageReceive = (msg, topic) => {
-        const username = this.state.username;
             this.setState(prevState => ({
-                messagesReceived: [...prevState.messagesReceived, msg]
+                messagesReceived: [...prevState.messagesReceived, msg],
             }));
     }
 
 
     render() {
-        const { classes } = this.props;
         const messagesReceived = this.state.messagesReceived;
         const username = this.state.username;
-        const userList = this.state.userList;
-        const date = new Date();
-
         return (
             <div className="container chatContainer">
               <div className="row">
-                <div className="mesgs col-8">
+                  <div className=" col-4"></div>
+                <div className="mesgs col-5 justify-content-end">
                     <div className="msg_history">
                         {messagesReceived  && messagesReceived.map((eachincoming) =>
                             eachincoming.username !== undefined
@@ -137,68 +100,58 @@ class SampleComponent extends React.Component {
                                 <div className="user_join">
                                     <p>{eachincoming.username} joined </p>
                                 </div>
-
                             :
-                                eachincoming.user !== username && eachincoming.content === undefined &&
-                                    <div className="incoming_msg">
+                                (eachincoming.user !== username && eachincoming.content === undefined &&
+                                    <div className="incoming">
                                         <div className="incoming_msg_img">
-                                            <img src="https://ptetutorials.com/images/user-profile.png" alt="user" />
+                                            <img src={chatIcon} alt="chat" />
                                         </div>
-                                        <div className="received_msg">
-                                            <div className="received_withd_msg">
+                                        <div className="incoming_msg">
+                                            <div className="incoming_msg_content">
                                                 <p>{eachincoming.message}</p>
+                                                <span  className="time_date">{eachincoming.user} | {moment().format('LT')}</span>
                                             </div>
                                         </div>
-                                    </div>
+                                    </div>)
                                 ||
 
-                                eachincoming.user === username &&
-                                    <div className="outgoing_msg">
-                                        <div className="sent_msg">
-                                            <p>{eachincoming.message}</p>
+                                (eachincoming.user === username &&
+                                    <div className="outgoing">
+                                        <div className="outgoing_msg_img">
+                                            <img src={personIcon} alt="user" />
                                         </div>
-                                    </div>
+                                        <div className="outgoing_msg">
+                                            <div className="outgoing_msg_content">
+                                                <p>{eachincoming.message}</p>
+                                                <span className="time_date">{eachincoming.user} | {moment().format('LT')}</span>
+                                            </div>
+                                        </div>
+                                    </div>)
                                 ||
-                                eachincoming.content !== undefined &&
+                                (eachincoming.content !== undefined &&
                                 <div className="user_join">
                                     <p>{eachincoming.content} </p>
-                                </div>
+                                </div>)
                             )}
 
                     </div>
 
                     { this.state.clientConnected && !this.state.sentUser &&
-                        <div className="type_msg">
+                        <form className="type_msg" onSubmit={this.sendUser}>
                             <div className="input_msg_write">
                                 <input type="text" className="write_msg" ref={(el) => this.userId = el}
                                        placeholder="Type your Name"/>
-                                <button className="msg_send_btn" type="button" onClick={(e) => {
-                                    this.sendUser(e)
-                                }}>
-                                    <Icon className={classes.rightIcon}>send</Icon>
-                                </button>
-                            </div>
-                        </div>
-                    }
-                    { this.state.sentUser &&
-                        <form className="type_msg">
-                            <div className="input_msg_write">
-                                <input type="text" className="write_msg" ref={(el) => this.inputText = el}
-                                       placeholder="Type a message"/>
-                                <button className="msg_send_btn" type="button" onClick={(e) => {
-                                    this.sendMessage(e)
-                                }}>
-                                    <Icon className={classes.rightIcon}>send</Icon>
-                                </button>
                             </div>
                         </form>
                     }
-                </div>
-                <div className="col-2">
-                <ul>
-                {userList && userList.map((username) => <li>{username}</li>)}
-
-                </ul>
+                    { this.state.sentUser &&
+                        <form className="type_msg" onSubmit={this.sendMessage}>
+                            <div className="input_msg_write">
+                                <input type="text" className="write_msg" ref={(el) => this.inputText = el}
+                                       placeholder="Type a message"/>
+                            </div>
+                        </form>
+                    }
                 </div>
                 </div>
                 <SockJsClient url="https://chatapplication01.herokuapp.com/chat" topics={["/topic/all", "/topic/user", "/topic/message"]}
