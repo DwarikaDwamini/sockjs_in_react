@@ -90,8 +90,8 @@ class SampleComponent extends React.Component {
         return (
             <div className="container chatContainer">
               <div className="row">
-                  <div className=" col-4"></div>
-                <div className="mesgs col-5 justify-content-end">
+                  <div className="col-md-4"></div>
+                <div className="mesgs col-sm-12 col-md-5 col-lg-5 justify-content-end">
                     <div className="msg_history">
                         {messagesReceived  && messagesReceived.map((eachincoming) =>
                             eachincoming.username !== undefined
